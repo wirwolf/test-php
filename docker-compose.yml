@@ -1,0 +1,40 @@
+version: "3.6"
+
+services:
+  nginx:
+    build:
+      dockerfile: Dockerfile
+      context: .docker/nginx
+    networks:
+      - test
+    ports:
+      - 80:80
+    restart: always
+    volumes:
+      - ./.docker/nginx/conf/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./.docker/nginx/conf/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./:/app:rw
+
+  php:
+    image: ${DOCKER_SERVER_HOST}/${DOCKER_PROJECT_PATH}/php${DOCKER_PHP_VERSION}-dev:${DOCKER_IMAGE_VERSION}
+    networks:
+      - test
+    user: 1000:1000
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    expose:
+      - 9000
+    volumes:
+      - ./:/app:rw
+      - ~/.composer/cache/:/.composer_cache/:rw
+      - .docker/php7.4-dev/xxx-develop-php.ini:/usr/local/etc/php/conf.d/xxx-develop-php.ini
+
+      - .docker/php7.4-fpm/data/www.conf:/usr/local/etc/php-fpm.d/www.conf:ro
+      - .docker/php7.4-fpm/data/global.conf:/usr/local/etc/php-fpm.d/global.conf:ro
+    env_file:
+      - .env
+
+networks:
+  test:
+    name: test
+    driver: bridge

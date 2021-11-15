@@ -1,0 +1,28 @@
+ARG DOCKER_IMAGE_VERSION=master
+ARG DOCKER_SERVER_HOST
+ARG DOCKER_PROJECT_PATH
+ARG DOCKER_PHP_VERSION
+
+FROM ${DOCKER_SERVER_HOST}/${DOCKER_PROJECT_PATH}/php${DOCKER_PHP_VERSION}-fpm:${DOCKER_IMAGE_VERSION}
+
+
+###
+### Envs
+###
+ENV MY_USER="app" \
+    MY_GROUP="app"
+
+ARG DOCKER_UID=1000
+ARG DOCKER_GID=1000
+
+ENV COMPOSER_ALLOW_SUPERUSER 1
+ENV COMPOSER_MEMORY_LIMIT -1
+ENV COMPOSER_CACHE_DIR /home/${MY_USER}/.composer_cache
+ENV COMPOSER_HOME /home/${MY_USER}/.composer
+
+RUN mkdir -p ${COMPOSER_CACHE_DIR} && chown -R ${DOCKER_UID}:${DOCKER_GID} ${COMPOSER_CACHE_DIR}
+RUN mkdir -p ${COMPOSER_HOME} && chown -R ${DOCKER_UID}:${DOCKER_GID} ${COMPOSER_HOME}
+
+RUN apt-get install -y curl git zip unzip
+
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
